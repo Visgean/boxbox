@@ -1,0 +1,6 @@
+[submodule "vagrant/puppet/modules/mysql"]
+	path = vagrant/puppet/modules/mysql
+	url = https://github.com/example42/puppet-mysql.git
+[submodule "vagrant/puppet/modules/apt"]
+	path = vagrant/puppet/modules/apt
+	url = https://github.com/example42/puppet-apt.git
