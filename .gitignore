@@ -1,7 +1,12 @@
 *.py[cod]
-
+.idea/
 # C extensions
 *.so
+data.sql
+
+vagrant/vagrant*
+vagrant/d*
+.vagrant/
 
 # Packages
 *.egg
