@@ -3,6 +3,10 @@ Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
 class { 'puppi': }
 class { 'stdlib': }
 
+class { 'apt':
+  force_aptget_update => false,
+}
+
 
 class { "mysql":
   root_password => '12345',
