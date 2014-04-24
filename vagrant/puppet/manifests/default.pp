@@ -3,15 +3,6 @@ Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
 class { 'puppi': }
 class { 'stdlib': }
 
-exec { 'apt-get update':
-  command => 'apt-get update',
-  timeout => 60,
-  tries   => 3
-}
-
-class { 'apt':
-  always_apt_update    => true,
-}
 
 class { "mysql":
   root_password => '12345',
