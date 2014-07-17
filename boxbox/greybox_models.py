@@ -1,6 +1,6 @@
 from peewee import *
 
-database = MySQLDatabase('debatovani', **{'passwd': '12345', 'host': '192.168.33.101', 'port': 3306, 'user': 'root'})
+database = MySQLDatabase('debatovani', **{'passwd': '12345', 'host': '10.0.0.100', 'port': 3306, 'user': 'debatovani'})
 
 
 class BaseModel(Model):
