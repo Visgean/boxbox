@@ -8,25 +8,54 @@ class BaseModel(Model):
         database = database
 
 class Clovek(BaseModel):
+    clovek = PrimaryKeyField(db_column='clovek_ID')
+
+    jmeno = CharField(max_length=26)
+    prijmeni = CharField(max_length=40)
+    nick = CharField(max_length=40, null=True)
+    narozen = DateField(null=True)
+    klub = IntegerField(null=True, db_column='klub_ID')
+
+    odznak = CharField(max_length=3, null=True)
+
     clen = IntegerField()
     clen_do = IntegerField()
-    clovek = PrimaryKeyField(db_column='clovek_ID')
     debater = IntegerField()
     dostal = IntegerField()
-    jmeno = CharField(max_length=26)
-    klub = IntegerField(null=True, db_column='klub_ID')
     komentar = TextField(null=True)
-    narozen = DateField(null=True)
-    nick = CharField(max_length=40, null=True)
-    odznak = CharField(max_length=3, null=True)
     prava_debaty = IntegerField()
     prava_kluby = IntegerField()
     prava_lidi = IntegerField()
     prava_souteze = IntegerField()
-    prijmeni = CharField(max_length=40)
 
     class Meta:
         db_table = 'clovek'
+
+
+class Turnaj(BaseModel):
+    datum_do = DateField()
+    datum_od = DateField()
+    komentar = TextField(null=True)
+    liga = IntegerField(null=True, db_column='liga_ID')
+    nazev = CharField(max_length=170)
+    soutez = IntegerField(db_column='soutez_ID')
+    turnaj = PrimaryKeyField(db_column='turnaj_ID')
+
+    class Meta:
+        db_table = 'turnaj'
+
+class Klub(BaseModel):
+    klub = PrimaryKeyField(db_column='klub_ID')
+    komentar = TextField(null=True)
+    kratky_nazev = CharField(max_length=21)
+    misto = CharField(max_length=170, null=True)
+    nazev = CharField(max_length=170)
+
+    class Meta:
+        db_table = 'klub'
+
+
+
 
 class Clovek_Debata(BaseModel):
     clovek = PrimaryKeyField(db_column='clovek_ID')
@@ -125,15 +154,6 @@ class Kategorie_Teze(BaseModel):
     class Meta:
         db_table = 'kategorie_teze'
 
-class Klub(BaseModel):
-    klub = PrimaryKeyField(db_column='klub_ID')
-    komentar = TextField(null=True)
-    kratky_nazev = CharField(max_length=21)
-    misto = CharField(max_length=170, null=True)
-    nazev = CharField(max_length=170)
-
-    class Meta:
-        db_table = 'klub'
 
 class Kontakt(BaseModel):
     clovek = IntegerField(db_column='clovek_ID')
@@ -228,17 +248,6 @@ class Tezenove(BaseModel):
     class Meta:
         db_table = 'tezenove'
 
-class Turnaj(BaseModel):
-    datum_do = DateField()
-    datum_od = DateField()
-    komentar = TextField(null=True)
-    liga = IntegerField(null=True, db_column='liga_ID')
-    nazev = CharField(max_length=170)
-    soutez = IntegerField(db_column='soutez_ID')
-    turnaj = PrimaryKeyField(db_column='turnaj_ID')
-
-    class Meta:
-        db_table = 'turnaj'
 
 class Tym(BaseModel):
     klub = IntegerField(db_column='klub_ID')
