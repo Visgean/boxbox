@@ -1,8 +1,10 @@
 import datetime
+
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError
-from models import *
 from pytz import timezone
+
+from models import *
 
 
 RDB_HOST = 'localhost'
@@ -10,18 +12,18 @@ RDB_PORT = 28015
 DEBATE_DB = 'debate'
 DB_TABLES = ['organizations', 'competitions', 'tournaments', 'debates', 'motions', 'humans', 'clubs']
 
-
 PROPOSITION_ORDER = {
     'a1': ('1st', 1),
     'a2': ('2nd', 2),
     'a3': ('3rd', 3),
-    }
+}
 
 OPPOSITION_ORDER = {
     'n1': ('1st', 1),
     'n2': ('2nd', 2),
     'n3': ('3rd', 3),
 }
+
 
 def convert_date(date):
     '''Convert date object so it can be used by rethinkdb if date is none than current date is to be used'''
@@ -32,6 +34,7 @@ def convert_date(date):
     prague = timezone('Europe/Prague')
 
     return prague.localize(dt, is_dst=False)
+
 
 def convert_datetime(datetime):
     '''Convert date object so it can be used by rethinkdb if date is none than current date is to be used'''
@@ -48,7 +51,7 @@ def db_setup():
 
     try:
         r.db_create(DEBATE_DB).run(connection)
-    except RqlRuntimeError:                         # lets crate a new and clean db.
+    except RqlRuntimeError:  # lets crate a new and clean db.
         r.db_drop(DEBATE_DB).run(connection)
         r.db_create(DEBATE_DB).run(connection)
 
@@ -63,45 +66,41 @@ def db_setup():
 
 db_setup()
 
-
 connection = r.connect(host=RDB_HOST, port=RDB_PORT, db=DEBATE_DB)
 connection.repl()
-
 
 adk_id = r.table('organizations').insert({
     'abbr': 'ADK',
     'name': u'Asociace debatnich klubu'
 }).run()['generated_keys'][0]
 
+id_conversion = {table: {} for table in ['soutez', 'liga', 'clovek', 'klub', 'turnaj', 'teze', 'debata', 'tym']}
+                 # 'organization':{
+                 # greyboxid:rethinkdbid
+                 # }
 
-id_conversion = {table:{} for table in ['soutez', 'liga', 'clovek', 'klub', 'turnaj', 'teze', 'debata', 'tym']
-    # 'organization':{
-    # greyboxid:rethinkdbid
-    # }
-}
 
 for klub in Klub.select():
     print klub.nazev
     new_obj = r.table('clubs').insert({
-            'name': klub.nazev,
-            'short_name': klub.kratky_nazev,
-            'description': klub.komentar,
-            'location': klub.misto,
-            'organization': adk_id,
-            'members': [],
-        }).run()
+        'name': klub.nazev,
+        'short_name': klub.kratky_nazev,
+        'description': klub.komentar,
+        'location': klub.misto,
+        'organization': adk_id,
+        'members': [],
+    }).run()
 
     id_conversion['klub'][klub.klub] = new_obj['generated_keys'][0]
 
 for clovek in Clovek.select():
     print clovek.jmeno
     new_obj = r.table('humans').insert({
-            'name': clovek.jmeno,
-            'surname': clovek.prijmeni,
-            'birthdate': convert_date(clovek.narozen),
-            'nickname': clovek.nick,
-        }).run()
-
+        'name': clovek.jmeno,
+        'surname': clovek.prijmeni,
+        'birthdate': convert_date(clovek.narozen),
+        'nickname': clovek.nick,
+    }).run()
 
     new_id = new_obj['generated_keys'][0]
     id_conversion['clovek'][clovek.clovek] = new_id
@@ -109,57 +108,50 @@ for clovek in Clovek.select():
     if clovek.klub:
         klub_id = id_conversion['klub'][clovek.klub]
         r.table('clubs').get(klub_id).update(
-                {'members': r.row['members'].append(new_id)}
-            ).run()
-
+            {'members': r.row['members'].append(new_id)}
+        ).run()
 
 for tym in Tym.select():
     print tym.nazev
     new_obj = r.table('clubs').insert({
-            'name': klub.nazev,
-            'description': klub.komentar,
-            'club': id_conversion['klub'][tym.klub],
-            'members': [id_conversion['clovek'].get(clovek.clovek, None) for clovek in Clovek_Tym.filter(tym=tym.tym)]
-        }).run()
+        'name': klub.nazev,
+        'description': klub.komentar,
+        'club': id_conversion['klub'][tym.klub],
+        'members': [id_conversion['clovek'].get(clovek.clovek, None) for clovek in Clovek_Tym.filter(tym=tym.tym)]
+    }).run()
 
     id_conversion['klub'][klub.klub] = new_obj['generated_keys'][0]
-
-
-
-
 
 for soutez in Soutez.select():
     print soutez.nazev
     new_obj = r.table('competitions').insert({
-            'language': soutez.jazyk,
-            'name': soutez.nazev,
-            'year': soutez.rocnik+2000,
-            'description': soutez.komentar,
-            'type':'cup',
-            'organization': adk_id,
-            'tournaments':[],
-            'debates':[]
+        'language': soutez.jazyk,
+        'name': soutez.nazev,
+        'year': soutez.rocnik + 2000,
+        'description': soutez.komentar,
+        'type': 'cup',
+        'organization': adk_id,
+        'tournaments': [],
+        'debates': []
 
-        }).run()
+    }).run()
 
     id_conversion['soutez'][soutez.soutez] = new_obj['generated_keys'][0]
-
 
 for liga in Liga.select():
     print liga.nazev
     new_obj = r.table('competitions').insert({
-            'language': 'cs',
-            'name': liga.nazev,
-            'year': liga.rocnik+2000,
-            'description': liga.komentar,
-            'type': 'league',
-            'organization': adk_id,
-            'tournaments':[],
-            'debates':[]
-        }).run()
+        'language': 'cs',
+        'name': liga.nazev,
+        'year': liga.rocnik + 2000,
+        'description': liga.komentar,
+        'type': 'league',
+        'organization': adk_id,
+        'tournaments': [],
+        'debates': []
+    }).run()
 
     id_conversion['liga'][liga.liga] = new_obj['generated_keys'][0]
-
 
 for turnaj in Turnaj.select():
     print turnaj.nazev
@@ -172,7 +164,7 @@ for turnaj in Turnaj.select():
         'description': turnaj.komentar,
         'organization': adk_id,
         'debates': [],
-        }).run()
+    }).run()
 
     new_id = new_obj['generated_keys'][0]
     id_conversion['turnaj'][turnaj.turnaj] = new_id
@@ -189,8 +181,7 @@ for turnaj in Turnaj.select():
             {'tournaments': r.row['tournaments'].append(new_id)}
         ).run()
 
-
-for teze in list(Tezenove.select())+list(Teze.select()):
+for teze in list(Tezenove.select()) + list(Teze.select()):
     print teze.tx, teze.tx_short
 
     new_obj = r.table('motions').insert({
@@ -201,8 +192,6 @@ for teze in list(Tezenove.select())+list(Teze.select()):
 
     new_id = new_obj['generated_keys'][0]
     id_conversion['teze'][teze.teze] = new_id
-
-
 
 for debata in Debata.select():
     print debata.debata
@@ -233,8 +222,6 @@ for debata in Debata.select():
     if opp.tym and id_conversion['tym'].get(opp.tym, None):
         debate_data['opposition']['team'] = id_conversion['tym'].get(opp.tym, None)
 
-
-
     for clovek in Clovek_Debata.filter(debata=debata.debata):
         if clovek.role == 'r':
             debate_data['judges'].append({
@@ -260,24 +247,12 @@ for debata in Debata.select():
     new_id = new_obj['generated_keys'][0]
     id_conversion['debata'][debata.debata] = new_id
 
-    import ipdb
-    ipdb.set_trace()
-
     if debata.turnaj:
-        r.table('tournaments').get({'id':id_conversion['turnaj'][debata.turnaj]}).update({
+        r.table('tournaments').get(id_conversion['turnaj'][debata.turnaj]).update({
             'debates': r.row['debates'].append(new_id)
         }).run()
 
     if debata.soutez:
-        r.table('competitions').get({'id':id_conversion['soutez'][debata.soutez]}).update({
+        r.table('competitions').get(id_conversion['soutez'][debata.soutez]).update({
             'debates': r.row['debates'].append(new_id)
         }).run()
-
-
-
-
-
-
-
-
-
