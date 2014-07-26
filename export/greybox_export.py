@@ -1,6 +1,6 @@
+import rethinkdb as r
 import datetime
 
-import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError
 from pytz import timezone
 
@@ -36,14 +36,14 @@ def convert_date(date):
     return prague.localize(dt, is_dst=False)
 
 
-def convert_datetime(datetime):
+def convert_datetime(dtime):
     '''Convert date object so it can be used by rethinkdb if date is none than current date is to be used'''
-    if not datetime:
-        datetime = datetime.now()
+    if not dtime:
+        dtime = datetime.datetime.now()
 
     prague = timezone('Europe/Prague')
 
-    return prague.localize(datetime, is_dst=False)
+    return prague.localize(dtime, is_dst=False)
 
 
 def db_setup():
@@ -205,12 +205,12 @@ for debata in Debata.select():
         'proposition': {
             'speakers': {},
             'points': prop.body,
-            'league_points': prop.liga_vytezek,
+            'league_points': float(prop.liga_vytezek or 0),
         },
         'opposition': {
             'speakers': {},
             'points': opp.body,
-            'league_points': opp.liga_vytezek,
+            'league_points': float(opp.liga_vytezek or 0),
         },
         'judges': [],
         'winner': 'proposition' if debata.vitez == 1 else 'opposition',
@@ -232,20 +232,25 @@ for debata in Debata.select():
 
         elif clovek.role in PROPOSITION_ORDER.keys():
             debate_data['proposition']['speakers'][PROPOSITION_ORDER[clovek.role][0]] = {
-                'human': id_conversion['clovek'][clovek.clovek],
+                'human': id_conversion['clovek'].get(clovek.clovek, None),
                 'points': clovek.kidy,
                 'order': PROPOSITION_ORDER[clovek.role][1]
             }
         elif clovek.role in OPPOSITION_ORDER.keys():
             debate_data['opposition']['speakers'][OPPOSITION_ORDER[clovek.role][0]] = {
-                'human': id_conversion['clovek'][clovek.clovek],
+                'human': id_conversion['clovek'].get(clovek.clovek, None),
                 'points': clovek.kidy,
                 'order': OPPOSITION_ORDER[clovek.role][1]
             }
 
+
     new_obj = r.table('debates').insert(debate_data).run()
+
     new_id = new_obj['generated_keys'][0]
     id_conversion['debata'][debata.debata] = new_id
+
+
+
 
     if debata.turnaj:
         r.table('tournaments').get(id_conversion['turnaj'][debata.turnaj]).update({
