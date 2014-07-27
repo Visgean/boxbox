@@ -1,3 +1,5 @@
+boxbox/settings/local_settings.py
+
 *.py[cod]
 .idea/
 # C extensions
