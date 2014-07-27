@@ -133,7 +133,7 @@ class Debata(BaseModel):
 class Debata_Tym(BaseModel):
     body = IntegerField(null=True)
     debata = PrimaryKeyField(db_column='debata_ID')
-    liga_vytezek = DecimalField(null=True)
+    liga_vytezek = I(null=True)
     pozice = IntegerField()
     tym = IntegerField(db_column='tym_ID')
 

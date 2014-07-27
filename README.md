@@ -1,9 +1,11 @@
-boxbox
+export
 ======
 
-Greybox ( http://debatovani.cz/greybox/ ) analysis
+*Note: you can just load dumped data that are in upper directory.*
+
 
 Place your sql data into git root as 'data.sql'. Install rethinkdb.
+
 
 ```bash
 cd vagrant/
@@ -14,6 +16,6 @@ cd ..
 
 rethinkdb
 
-python export/greybox_export.py
+python greybox_export.py
 
 ```
